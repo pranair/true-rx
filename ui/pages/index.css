@@ -5,7 +5,7 @@ html {
 body {
     margin: 0px;
     height: 100%;
-    padding: 2rem;
+    padding: 1rem;
     overflow-x: hidden;
     overflow-y: auto;
     background-color: var(--surface-ground);
@@ -25,16 +25,43 @@ body {
     margin-right: 10px;
 }
 
-.p-datatable {
-    padding-top: 20px;
-}
-
 .progress_outer {
   width:100%;
   display: flex;
   justify-content: center;
 }
 
-.video-padding {
+.video-padding {    
     margin-bottom: 20px;
+}
+
+.disable-select {
+    user-select: none; /* supported by Chrome and Opera */
+   -webkit-user-select: none; /* Safari */
+   -khtml-user-select: none; /* Konqueror HTML */
+   -moz-user-select: none; /* Firefox */
+   -ms-user-select: none; /* Internet Explorer/Edge */
+}
+
+#login-box {
+    position: absolute;
+    top:  50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+}
+
+.input-center{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.input-center > label{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#general-tab .p-card-content {
+    padding-top:0;
 }

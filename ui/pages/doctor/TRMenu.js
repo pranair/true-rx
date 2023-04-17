@@ -8,27 +8,30 @@ import "primeicons/primeicons.css";
 const TRMenu = () => {
     const items = [
         {
-            label: 'New',
+            label: '',
             icon: 'pi pi-fw pi-plus',
-            url: '/new'
+            items : [
+                {
+                    label: 'Patient',
+                },
+                {
+                    label: 'Prescription',
+                    url: '/doctor/add/prescription'
+                }
+            ]
         },
         {
-            label: 'Stats',
-            icon: 'pi pi-fw pi-chart-bar',
-        },
-        {
-            label: 'Profile',
+            label: 'Patient List',
             icon: 'pi pi-fw pi-user',
+        },
+        {
+            label: 'Schedule',
+            icon: 'pi pi-fw pi-calendar',
         },
         {
             label: 'Logout',
             icon: 'pi pi-fw pi-power-off'
         },
-        {
-            label: 'User',
-            icon: 'pi pi-fw pi-eye',
-            url: '/patient'
-        }
     ];
 
     const start = <img alt="logo" src="/l.jpg" height="35" className="logo"></img>;
