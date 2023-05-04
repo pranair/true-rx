@@ -4,6 +4,7 @@ import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import TRMenu from "./TRMenu";
 import { ProgressSpinner } from 'primereact/progressspinner';
+import { useRouter } from 'next/router'
 
 export default function BasicDemo() {
     const [visible, setVisible] = useState(false);
@@ -11,6 +12,7 @@ export default function BasicDemo() {
     const [qrval, setQRVal] = useState('');
     const [resolved, setResolved] = useState(false);
     const [quote, setQuote] = useState("");
+    const router = useRouter()
     const footerContent = (
         <div className="progress_outer">
             {/*<ProgressBar mode="indeterminate" style={{ height: '6px', width:'30%', }}></ProgressBar>*/}
@@ -32,7 +34,8 @@ export default function BasicDemo() {
 
 
     useEffect(() => {
-        loadQRValue();
+        router.push("/doctor/profile");
+        // loadQRValue();
     }, []);
 
     const TRQRCode = () => {
@@ -68,14 +71,14 @@ export default function BasicDemo() {
 
     return (
         <div>
-            <TRMenu></TRMenu>
+            {/* <TRMenu></TRMenu>
             <div className="card flex justify-content-center">
                 <Button visible={!tableVisible} className="absolute top-50" label="Scan QR" icon="pi pi-external-link" onClick={() => setVisible(true)} />
                 <Dialog className="text-center" header="Scan this QR from your device" visible={visible} style={{ width: '50vw' }} onHide={() => setVisible(false)} footer={footerContent} draggable={false}>
                     <TRQRCode />
                     <SSE />
                 </Dialog>
-            </div>
+            </div> */}
         </div>
     )
 }

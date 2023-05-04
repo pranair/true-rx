@@ -23,7 +23,7 @@ const Test = (props) => {
         onResult={(result, error) => {
             if (!!result) {
             	setData(result?.text);
-            	const name = document.getElementById("input-text").value
+                const name = localStorage.getItem("currentUserID");
                 fetch('/api/patient/addq', {
                     method: 'POST',
                     headers: {

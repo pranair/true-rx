@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import "primereact/resources/themes/lara-light-blue/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
-import TRMenu from '../TRMenu';
+import TRMenu from './TRMenu';
 import { Card } from 'primereact/card';
 import { Avatar } from 'primereact/avatar';
 import { Panel } from 'primereact/panel';
@@ -13,15 +13,14 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { useRouter } from 'next/router'
 
-
 const GeneralTab = (props) => {
     const firstName = props.data["name"]?.split(" ")[0];
     const lastName = props.data["name"]?.split(" ")[1];
 
     return (
         <div className='ml-3'>
-            <div className='m-0 p-0'>
-                <h2 className=''>Personal Details</h2>
+            <h2>Personal Details</h2>
+            {/* <div className='m-0 p-0'>
                 <div className="grid font-bold text-color-secondary">
                     <div className="col"><p>Last Name</p></div>
                     <div className="col"><p>First Name</p></div>
@@ -37,17 +36,44 @@ const GeneralTab = (props) => {
                     <div className="col"><p>{props.data["phone_number"]}</p></div>
                 </div>
             </div>
-            <div className='m-0 p-0'>
+            <div className='mb-6'>
                 <div className="grid font-bold text-color-secondary">
-                    <div className="col"><p>Email</p></div>
-                    <div className="col-9"><p>Address</p></div>
+                    <div className="col-3"><p>Email</p></div>
+                    <div className="col-3"><p>Address</p></div>
+                    <div className="col-3"></div>
+                    <div className="col-3"></div>
+
+                    <div className="col-3" style={{ "wordWrap": "break-word" }}>{props.data["email"]}</div>
+                    <div className="col-3">{props.data["address"]}</div>
+                </div>
+            </div> */}
+            <div className='flex font-bold justify-content-between m-0 mb-5 flex-wrap gap-6'>
+                <div className='flex flex-column'>
+                    <p className='text-color-secondary'>First Name</p>
+                    <p>{firstName}</p>
+                </div>
+                <div className='flex flex-column'>
+                    <p className='text-color-secondary'>Last Name</p>
+                    <p>{lastName}</p>
+                </div>
+                <div className='flex flex-column'>
+                    <p className='text-color-secondary'>Date of Birth</p>
+                    <p>{new Date(props.data["dob"]).toDateString()}</p>
+                </div>
+                <div className='flex flex-column'>
+                    <p className='text-color-secondary'>Phone Number</p>
+                    <p>{props.data["phone_number"]}</p>
+                </div>
+                <div className='flex flex-column'>
+                    <p className='text-color-secondary'>Email</p>
+                    <p>{props.data["email"]}</p>
+                </div>
+                <div className='flex flex-column'>
+                    <p className='text-color-secondary'>Address</p>
+                    <p>{props.data["address"]}</p>
                 </div>
             </div>
             <div className='m-0 p-0'>
-                <div className="grid font-bold">
-                    <div className="col"><p>{props.data["email"]}</p></div>
-                    <div className="col-9"><p>{props.data["address"]}</p></div>
-                </div>
                 <Panel header="Notes" className=''>
                     {
                         props.data["notes"]?.map((e, i) => (
@@ -74,6 +100,11 @@ export default function App() {
     const [data, setData] = useState({});
     const [medication, setMedication] = useState([]);
     const [prescription, setPrescription] = useState([]);
+    const router = useRouter();
+
+    const handleDoubleClick = (e) => {
+        router.push("/view/prescription/" + e["data"]["prescription_id"])
+    }
 
     useEffect(() => {
         if (Object.keys(data).length == 0) {
@@ -148,9 +179,10 @@ export default function App() {
                         <div className="font-bold">
                             <h2 className='mt-0'>Allergies</h2>
                             {
-                                data["allergies"]?.map((e, i) => (
-                                    <div className="grid m-0 p-0" key={i}>
+                                data["allergies"] && Object.keys(data["allergies"])?.map((e, i) => (
+                                    <div className="grid m-0 p-0 text-center" key={i}>
                                         <div className="col"><p>{e}</p></div>
+                                        <div className="col text-red-600"><p>{data["allergies"][e]}</p></div>
                                     </div>
                                 ))
                             }
@@ -164,10 +196,10 @@ export default function App() {
                             <GeneralTab data={data} />
                         </TabPanel>
                         <TabPanel header="Prescriptions">
-                            <DataTable value={prescription}>
-                                <Column style={{ width: '33%' }} field="prescription_id" header="ID"></Column>
-                                <Column style={{ width: '33%' }} field="name" header="Doctor"></Column>
-                                <Column style={{ width: '33%' }} field="date" header="Date"></Column>
+                            <DataTable selectionMode="single" value={prescription} onRowDoubleClick={handleDoubleClick}>
+                                <Column className="disable-select" style={{ width: '33%' }} field="prescription_id" header="ID"></Column>
+                                <Column className="disable-select" style={{ width: '33%' }} field="name" header="Doctor"></Column>
+                                <Column className="disable-select" style={{ width: '33%' }} field="date" header="Date"></Column>
                             </DataTable>
                         </TabPanel>
                         <TabPanel header="Current Medications">

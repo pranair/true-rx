@@ -1,11 +1,16 @@
-import React from 'react'; 
+import React, {useEffect} from 'react'; 
 import { Menubar } from 'primereact/menubar';
 import "primereact/resources/themes/lara-light-indigo/theme.css";     
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
+import { Image } from 'primereact/image';
+import Cookies from 'js-cookie'
+import { useRouter } from 'next/router';
 
 
 const TRMenu = () => {
+    const router = useRouter();
+
     const items = [
         {
             label: '',
@@ -13,6 +18,7 @@ const TRMenu = () => {
             items : [
                 {
                     label: 'Patient',
+                    url: '/doctor/add/patient'
                 },
                 {
                     label: 'Prescription',
@@ -20,21 +26,30 @@ const TRMenu = () => {
                 }
             ]
         },
-        {
-            label: 'Patient List',
-            icon: 'pi pi-fw pi-user',
-        },
-        {
-            label: 'Schedule',
-            icon: 'pi pi-fw pi-calendar',
-        },
+        // {
+        //     label: 'List',
+        //     icon: 'pi pi-fw pi-user',
+        //     items : [
+        //         {
+        //             label: 'Patient List'
+        //         },
+        //         {
+        //             label: 'Prescription List'
+        //         }
+        //     ]
+        // },
         {
             label: 'Logout',
-            icon: 'pi pi-fw pi-power-off'
+            icon: 'pi pi-fw pi-power-off',
+            command: () => {
+                Cookies.remove('jwt');
+                Cookies.remove('usertype');
+                router.push('/');
+            }
         },
     ];
 
-    const start = <img alt="logo" src="/l.jpg" height="35" className="logo"></img>;
+    const start = <Image alt="logo" src="/l.jpg" height="35" className="logo"></Image>;
     // const end = <InputText placeholder="Search" type="text" />;
     const end = "";
     return (

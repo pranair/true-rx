@@ -108,3 +108,31 @@ WHERE
     
 SELECT pi.medication_id,m.medication_generic_name,pi.quantity,pi.dosage,pi.days,p.date + pi.days AS due_date FROM  prescription_items pi INNER JOIN medication m ON pi.medication_id = m.medication_id INNER JOIN prescription p ON pi.prescription_id = p.prescription_id WHERE p.patient_id = 1 AND p.status = true AND p.date + pi.days >= NOW();
 
+make two dates for prescription, issuing date of prescription and date when medicine is give. active prescriptions are calculated based on the second date. also set status of prescription as false when making it
+hospital?
+
+CREATE TABLE pharmacist (
+    pharmacist_id INT PRIMARY KEY,
+    email string(30),
+    name string(20),
+    password string(10),
+    pharmacy_name string(100),
+    license_number string(100),
+    phone_number string(20),
+    address string(100)
+);
+
+commands:
+cockroach start \
+--insecure \
+--store=node1 \
+--listen-addr=localhost:26257 \
+--http-addr=localhost:8080 \
+--join=localhost:26257,localhost:26258,localhost:26259 \
+--background
+
+cockroach init --insecure --host=localhost:26257
+
+cockroach sql --insecure --host=localhost:26257 --database=truerx < medicine_db.sql
+
+cockroach sql --insecure --host=localhost:26257 

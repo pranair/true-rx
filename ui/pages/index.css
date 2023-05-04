@@ -65,3 +65,17 @@ body {
 #general-tab .p-card-content {
     padding-top:0;
 }
+
+.p-password-input {
+    width: 20rem;
+}
+
+.p-tabview-nav-link{
+    display: flex !important;
+    justify-content: center;
+    text-align: center !important;
+}
+
+.p-autocomplete-input {
+    width: 100%;
+}

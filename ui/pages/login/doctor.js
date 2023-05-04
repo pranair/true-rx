@@ -58,6 +58,7 @@ export default function App() {
                                         console.log(response);
                                         localStorage.setItem("currentID", response["access_token"]);
                                         localStorage.setItem("currentUserType", "0");
+                                        localStorage.setItem("currentUserID", username);
                                         Cookies.set('jwt', response["access_token"], { expires: cookieExpire });
                                         Cookies.set('usertype', "0", { expires: cookieExpire });
                                         router.push('/doctor/profile');
