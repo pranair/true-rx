@@ -10,7 +10,8 @@ import { useRouter } from 'next/router'
 import { TabView, TabPanel } from 'primereact/tabview';
 
 export default function App() {
-    const router = useRouter()
+    const router = useRouter();
+    const [tries, setTries] = useState(0);
 
     const handleDoubleClick = (e) => {
         // console.log(e);
@@ -24,7 +25,7 @@ export default function App() {
     ];
 
     useEffect(() => {
-        if (data.length == 0) {
+        if (data.length == 0 && tries < 3) {
             // const id = localStorage.getItem("currentID");
             const jwt = localStorage.getItem("currentID");
 
@@ -45,6 +46,7 @@ export default function App() {
                     }
                     setData(t);
                 });
+            setTries(tries+1);
         }
     });
 

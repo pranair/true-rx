@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, Response
+from flask import Flask, render_template, request, jsonify, Response, redirect
 from kombu.simple import SimpleBuffer
 from datetime import timedelta
 import string
@@ -7,6 +7,7 @@ import kombu
 import psycopg
 import random
 import datetime
+import time
 
 from flask_jwt_extended import create_access_token
 from flask_jwt_extended import get_jwt_identity
@@ -19,11 +20,20 @@ import json
 from redis.commands.search.field import TextField, NumericField, TagField
 from redis.commands.search.query import Query
 
+r = redis.Redis(
+  host='redis-12228.c301.ap-south-1-1.ec2.cloud.redislabs.com',
+  port=12228,
+  password='jUGEF6o3IETlbrbU6QaKVnVYKkWbzSp4')
+
+
 app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = "super-secret"  # Change this!
 # app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=1)
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=30)
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=12)
 jwt = JWTManager(app)
+# conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
+conn = psycopg.connect("postgresql://tolstoy:HP5ipDvwyHUGjch56BvdOA@doting-monkey-9834.5xj.cockroachlabs.cloud:26257/defaultdb?sslmode=verify-full")
+ADMIN_SECRET = "password"
 
 
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
@@ -32,7 +42,7 @@ def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
 
 @app.route("/api/verify_user")
 def verify():
-    r = redis.Redis(host='localhost', port=6379)
+    # r = redis.Redis(host='localhost', port=6379)
     create = request.args.get("create", None)
     poll = request.args.get("poll", None)
     push = request.args.get("push", None)
@@ -46,10 +56,11 @@ def verify():
         return jsonify({"success": True})
     elif poll:
         def eventStream():
-            while r.get(poll).decode() == "":
-                continue
-            if r.get(poll) != "":
+            while r.get(poll) == b'':
+                    continue
+            if r.get(poll) != b'':
                 yield 'data: %s\n\n' % r.get(poll).decode()
+                time.sleep(0.1)
         return Response(eventStream(), mimetype="text/event-stream")
     else:
         return jsonify({"error": True})
@@ -99,8 +110,7 @@ def patient_addq():
 @jwt_required()
 def patient_api_home():
     current_user = get_jwt_identity()
-    conn = psycopg.connect(
-        "postgresql://root@localhost:26257/truerx?sslmode=disable")
+    # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
     # medication_query = "SELECT pi.medication_id,m.medication_generic_name,pi.frequency,pi.dosage,pi.days,p.date + pi.days AS due_date FROM  prescription_items pi INNER JOIN medication m ON pi.medication_id = m.medication_id INNER JOIN prescription p ON pi.prescription_id = p.prescription_id WHERE p.status = true AND p.date + pi.days >= NOW() AND p.patient_id = "
     medication_query = """
     SELECT
@@ -170,7 +180,7 @@ def patient_api_home():
             pres[idx1] = temp
         out["prescription"] = pres
 
-    conn.close()
+    # conn.close()
     if out == {}:
         return jsonify({"error": "no such patient"})
     return jsonify(out)
@@ -181,8 +191,7 @@ def patient_api_home():
 @app.route("/api/patient/<uid>", methods=["GET"])
 @jwt_required()
 def patient_api_home_with_uid(uid):
-    conn = psycopg.connect(
-        "postgresql://root@localhost:26257/truerx?sslmode=disable")
+    # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
     medication_query = """
     SELECT 
         pi.medication_id,
@@ -248,7 +257,7 @@ def patient_api_home_with_uid(uid):
             pres[idx1] = temp
         out["prescription"] = pres
 
-    conn.close()
+    # conn.close()
     if out == {}:
         return jsonify({"error": "no such patient"})
     return jsonify(out)
@@ -262,8 +271,7 @@ def add_patient():
     VALUES
     (%s, '%s', '%s', '%s', '%s', %s, %s, '%s', '%s', %s, %s, %s)
     """
-    conn = psycopg.connect(
-        "postgresql://root@localhost:26257/truerx?sslmode=disable")
+    # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
     patient_id = random.randint(10, 1000)
     name = request.json.get("name", None)
     password = request.json.get("password", None)
@@ -297,7 +305,7 @@ def add_patient():
             print(query % (patient_id, name, password, dob, gender, weight, phone_number, email, address, allergies, notes, uid))
             cur.execute(query % (patient_id, name, password, dob, gender, weight, phone_number, email, address, allergies, notes, uid))
             conn.commit()
-        conn.close()
+        # conn.close()
         return jsonify({"pid": patient_id})
     else:
         return jsonify({"error": True}) 
@@ -306,8 +314,7 @@ def add_patient():
 @app.route("/api/patient/email/<email>")
 @jwt_required()
 def patient_api_with_email(email):
-    conn = psycopg.connect(
-        "postgresql://root@localhost:26257/truerx?sslmode=disable")
+    # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
     medication_query = """
     SELECT 
         pi.medication_id,
@@ -375,7 +382,7 @@ def patient_api_with_email(email):
             pres[idx1] = temp
         out["prescription"] = pres
 
-    conn.close()
+    # conn.close()
     if out == {}:
         return jsonify({"error": "no such patient"})
     return jsonify(out)
@@ -384,7 +391,7 @@ def patient_api_with_email(email):
 @app.route("/api/prescription/medicine/get", methods=["POST"])
 def medicine_ajax():
     if request.method == "POST":
-        r = redis.Redis(host='localhost', port=6379)
+        # r = redis.Redis(host='localhost', port=6379)
         schema = (
             NumericField("$.ID", as_name="id"),
             TextField("$.producttypename", as_name="otc"),
@@ -405,9 +412,9 @@ def medicine_ajax():
             ret = {}
             ret["data"] = out
             ret["result"] = True
-            r.close()
+            # r.close()
             return jsonify(ret)
-    r.close()
+    # r.close()
     return jsonify({"result": False})
 
 
@@ -427,8 +434,7 @@ def prescription_api_home_with_email():
     patient_id = None
     doctor_id = None
     if request.method == 'POST':
-        conn = psycopg.connect(
-            "postgresql://root@localhost:26257/truerx?sslmode=disable")
+        # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
         with conn.cursor() as cur:
             if request.json.get("patient_email", None):
                 cur.execute("select patient_id from patient where email like '%s'" %
@@ -452,15 +458,14 @@ def prescription_api_home_with_email():
                 cur.execute(prescription_item_query % (
                     prescription_id, medication_id, frequency, dosage, days))
                 conn.commit()
-            conn.close()
+            # conn.close()
     return jsonify({"id": prescription_id})
 
 
 @app.route("/api/login/doctor", methods=["POST"])
 def doctor_login():
     if request.method == "POST":
-        conn = psycopg.connect(
-            "postgresql://root@localhost:26257/truerx?sslmode=disable")
+        # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
         id = request.json.get("id", None)
         password = request.json.get("password", None)
         index = 0
@@ -469,7 +474,7 @@ def doctor_login():
                 cur.execute(
                     "SELECT password, doctor_id FROM doctor where email like '%s'" % str(id))
                 rows = cur.fetchall()
-                conn.close()
+                # conn.close()
                 if rows == []:
                     return jsonify({"msg": "Bad username or password", "error": "true"}), 401
                 else:
@@ -489,15 +494,14 @@ def doctor_login():
 @app.route("/api/login/patient", methods=["POST"])
 def patient_login():
     if request.method == "POST":
-        conn = psycopg.connect(
-            "postgresql://root@localhost:26257/truerx?sslmode=disable")
+        # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
         id = request.json.get("id", None)
         password = request.json.get("password", None)
         with conn.cursor() as cur:
             cur.execute(
                 "SELECT password, patient_id FROM patient where email like '%s'" % id)
             rows = cur.fetchall()
-            conn.close()
+            # conn.close()
             if rows == []:
                 return jsonify({"msg": "Bad username or password", "error": "true"}), 401
             else:
@@ -514,15 +518,14 @@ def patient_login():
 @app.route("/api/login/pharmacist", methods=["POST"])
 def pharmacist_login():
     if request.method == "POST":
-        conn = psycopg.connect(
-            "postgresql://root@localhost:26257/truerx?sslmode=disable")
+        # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
         id = request.json.get("id", None)
         password = request.json.get("password", None)
         with conn.cursor() as cur:
             cur.execute(
                 "SELECT password, pharmacist_id FROM pharmacist where email like '%s'" % id)
             rows = cur.fetchall()
-            conn.close()
+            # conn.close()
             if rows == []:
                 return jsonify({"msg": "Bad username or password", "error": "true"}), 401
             else:
@@ -559,8 +562,7 @@ def recent_prescriptions():
       ON r.patient_id = p.patient_id
     WHERE d.doctor_id = 
     """
-    conn = psycopg.connect(
-        "postgresql://root@localhost:26257/truerx?sslmode=disable")
+    # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
     with conn.cursor() as cur:
         cur.execute(query+current_user)
         rows = cur.fetchall()
@@ -573,7 +575,7 @@ def recent_prescriptions():
                 temp["date"] = el[2]
                 temp["status"] = 'Done' if el[3] == True else 'Pending'
                 ret[idx] = temp
-        conn.close()
+        # conn.close()
     return jsonify(ret)
 
 
@@ -594,8 +596,7 @@ def recent_patient_prescriptions():
     	ON r.patient_id = p.patient_id
     WHERE r.email like '%s'
     """
-    conn = psycopg.connect(
-        "postgresql://root@localhost:26257/truerx?sslmode=disable")
+    # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
     ret = {}
     patient_email = request.args.get("patient", None)
     print(patient_email)
@@ -615,7 +616,7 @@ def recent_patient_prescriptions():
                 temp["pname"] = el[4]
                 temp["status"] = 'Done' if el[3] == True else 'Pending'
                 ret[idx] = temp
-        conn.close()
+        # conn.close()
     return jsonify(ret)
 
 
@@ -642,8 +643,7 @@ def recent_prescriptions_pharmacist():
       ON r.patient_id = p.patient_id
     WHERE d.pharmacist_id = %s 
     """ % (current_user)
-    conn = psycopg.connect(
-        "postgresql://root@localhost:26257/truerx?sslmode=disable")
+    # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
     with conn.cursor() as cur:
         cur.execute(query)
         rows = cur.fetchall()
@@ -656,7 +656,7 @@ def recent_prescriptions_pharmacist():
                 temp["date"] = el[2]
                 temp["status"] = 'Done' if el[3] == True else False
                 ret[idx] = temp
-        conn.close()
+        # conn.close()
     return jsonify(ret)
 
 
@@ -690,8 +690,7 @@ def view_prescription(uid):
                 ON p.pharmacist_id = pharm.pharmacist_id
     WHERE  p.prescription_id = %s
     """
-    conn = psycopg.connect(
-        "postgresql://root@localhost:26257/truerx?sslmode=disable")
+    # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
     with conn.cursor() as cur:
         cur.execute(query % uid)
         rows = cur.fetchall()
@@ -711,7 +710,7 @@ def view_prescription(uid):
             ret["patient_id"] = el[7]
             ret["doctor"] = el[9]
             ret["pharmacist"] = el[10]
-        conn.close()
+        # conn.close()
     return jsonify(ret)
 
 
@@ -746,8 +745,7 @@ def edit_prescription(uid):
     claims = get_jwt()
     if claims["usertype"] == "0":
         edit_type = request.args.get('type', None)
-        conn = psycopg.connect(
-            "postgresql://root@localhost:26257/truerx?sslmode=disable")
+        # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
         with conn.cursor() as cur:
             print(edit_type, edit_type == 'medication')
             if edit_type == 'medication':
@@ -760,23 +758,86 @@ def edit_prescription(uid):
                 note = request.json.get("note")
                 cur.execute(note_edit_query, (note, uid))
             else:
-                conn.close()
+                # conn.close()
                 return jsonify({"error": "false"})
             conn.commit()
-            conn.close()
+            # conn.close()
     elif claims["usertype"] == "2":
         current_pharmacist = get_jwt_identity()
         print(issue_query % ('true', current_pharmacist, uid))
         edit_type = request.args.get('type', None)
         if edit_type == 'issue':
-            conn = psycopg.connect(
-                "postgresql://root@localhost:26257/truerx?sslmode=disable")
+            # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
             with conn.cursor() as cur:
                 cur.execute(issue_query % ('true', current_pharmacist, uid))
                 conn.commit()
-                conn.close()
+                # conn.close()
     return jsonify({"error": "false"})
 
+@app.route("/api/login/admin", methods=["POST"])
+@jwt_required()
+def admin_login():
+    error = {"error": "true"}
+    if request.json["password"] == ADMIN_SECRET:
+        additional_claims = {"usertype": "3"}
+        access_token = create_access_token(identity="admin", additional_claims=additional_claims)
+        return jsonify(access_token=access_token)
+    return jsonify(error)
+
+@app.route("/api/doctor", methods=["PUT"])
+@jwt_required()
+def add_doctor():
+    query = """
+    INSERT INTO doctor (doctor_id, email, name, password, degree_specialisation, license_number, hospital_name)
+    VALUES
+    (%s, '%s', '%s', '%s', '%s', '%s', '%s')
+    """
+    doctor_id = random.randint(10, 1000)
+    email = request.json.get("email", None)
+    name = request.json.get("name", None)
+    password = request.json.get("password", None)
+    specialization = request.json.get("specialization", None)
+    license = request.json.get("license", None)
+    hospital = request.json.get("hospital", None)
+
+    phone_number = request.json.get("phone", None)
+
+    if doctor_id and name and password and phone_number and email and specialization and \
+          hospital and license:
+        with conn.cursor() as cur:
+            print(query % (doctor_id, email, name, password, specialization, license, hospital))
+            cur.execute(query % (doctor_id, email, name, password, specialization, license, hospital))
+            conn.commit()
+        # conn.close()
+        return jsonify({"doctor_id": doctor_id})
+    else:
+        return jsonify({"error": True})
+
+@app.route("/api/pharmacist", methods=["PUT"])
+def add_pharmacist():
+    query = """
+    INSERT INTO pharmacist (pharmacist_id, email, name, password, pharmacy_name, license_number, phone_number, address)
+    VALUES
+    (%s, '%s', '%s', '%s', '%s', '%s', '%s', '%s')
+    """
+    pharmacist_id = random.randint(10, 1000)
+    email = request.json.get("email", None)
+    name = request.json.get("name", None)
+    password = request.json.get("password", None)
+    pharmacy_name = request.json.get("pharmacy", None)
+    license = request.json.get("license", None)
+    phone = request.json.get("phone", None)
+    address = request.json.get("address", None)
+
+    if pharmacist_id and name and password and phone and email and pharmacy_name and \
+          address and license:
+        with conn.cursor() as cur:
+            cur.execute(query % (pharmacist_id, email, name, password, pharmacy_name, license, phone, address))
+            conn.commit()
+        # conn.close()
+        return jsonify({"pharmacist_id": pharmacist_id})
+    else:
+        return jsonify({"error": True}) 
 
 if __name__ == "__main__":
     app.run(debug=True)

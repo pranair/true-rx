@@ -136,9 +136,9 @@ export default function BasicDemo() {
         }
     }
 
-    useEffect(() => {
-        loadQRValue();
-    }, []);
+    // useEffect(() => {
+    //     loadQRValue();
+    // }, []);
 
     useEffect(() => {
         loadUserName();

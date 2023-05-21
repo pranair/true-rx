@@ -31,6 +31,10 @@ export default function middleware(request) {
   if (request.nextUrl.pathname == '/' && usertype?.value == '2') {
     return NextResponse.redirect(new URL('/pharmacist/profile', request.url));
   }
+    
+  if (request.nextUrl.pathname == '/' && usertype?.value == '3') {
+    return NextResponse.redirect(new URL('/admin/profile', request.url));
+  }
 
   if (request.nextUrl.pathname.startsWith('/doctor') && usertype?.value != "0") {
     return NextResponse.redirect(new URL('/login', request.url))
@@ -41,8 +45,11 @@ export default function middleware(request) {
   if (request.nextUrl.pathname.startsWith('/pharmacist') && usertype?.value != "2") {
     return NextResponse.redirect(new URL('/login', request.url))
   }
+  if (request.nextUrl.pathname.startsWith('/admin') && usertype?.value != "3") {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
 }
 
 export const config = {
-  matcher: ['/view/:path*', '/doctor/:path*', '/patient/:path*', '/', '/pharmacist/:path*']
+  matcher: ['/view/:path*', '/doctor/:path*', '/patient/:path*', '/', '/pharmacist/:path*', '/admin/:path*']
 }

@@ -6,14 +6,14 @@ import { InputText } from 'primereact/inputtext';
 import { Password } from 'primereact/password';
 import Cookies from 'js-cookie'
 import { useRouter } from 'next/router'
-import { handleClientScriptLoad } from 'next/script';
 
 export default function Home() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [active, setActive] = useState([true, false, false]);
     const [error, setError] = useState(false);
-    let cookieExpire = 1 / 48;
+    // let cookieExpire = 1 / 48;
+    let cookieExpire = 0.5;
     const router = useRouter();
     const apiLinks = [
         "/api/login/doctor",
