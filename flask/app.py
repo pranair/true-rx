@@ -775,7 +775,6 @@ def edit_prescription(uid):
     return jsonify({"error": "false"})
 
 @app.route("/api/login/admin", methods=["POST"])
-@jwt_required()
 def admin_login():
     error = {"error": "true"}
     if request.json["password"] == ADMIN_SECRET:
@@ -801,7 +800,7 @@ def add_doctor():
     hospital = request.json.get("hospital", None)
 
     phone_number = request.json.get("phone", None)
-
+    print(query % (doctor_id, email, name, password, specialization, license, hospital))
     if doctor_id and name and password and phone_number and email and specialization and \
           hospital and license:
         with conn.cursor() as cur:
