@@ -30,6 +30,7 @@ export default function Home() {
                     console.log(response);
                     localStorage.setItem("currentID", response["access_token"]);
                     localStorage.setItem("currentUserType", "3");
+                    console.log(response);
                     Cookies.set('jwt', response["access_token"], { expires: cookieExpire });
                     Cookies.set('usertype', "3", { expires: cookieExpire });
                     router.push("/admin/profile");

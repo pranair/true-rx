@@ -85,6 +85,7 @@ const BasicCard = () => {
                             console.log(response);
                             // setSendData(false);
                             // router.push("/view/patient/" + response["pid"])
+                            router.push("/admin/profile");
                         })
                 }} />
             </div>
