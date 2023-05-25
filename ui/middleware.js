@@ -4,6 +4,9 @@ export default function middleware(request) {
   const jwt = request.cookies.get("jwt");
   const usertype = request.cookies.get("usertype");
   console.log(request.nextUrl.pathname);
+  if (request.nextUrl.pathname == '/admin') {
+    return NextResponse.next();
+  }
   if (jwt == undefined) {
     // if (request.nextUrl.pathname.startsWith('/doctor/profile')) {
     //   return NextResponse.redirect(new URL('/login', request.url));
