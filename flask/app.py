@@ -32,7 +32,8 @@ app.config["JWT_SECRET_KEY"] = "super-secret"  # Change this!
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=12)
 jwt = JWTManager(app)
 # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
-conn = psycopg.connect("postgresql://tolstoy:HP5ipDvwyHUGjch56BvdOA@doting-monkey-9834.5xj.cockroachlabs.cloud:26257/defaultdb?sslmode=verify-full")
+CONN_STRING = "postgresql://tolstoy:HP5ipDvwyHUGjch56BvdOA@doting-monkey-9834.5xj.cockroachlabs.cloud:26257/defaultdb?sslmode=verify-full"
+conn = psycopg.connect(CONN_STRING)
 ADMIN_SECRET = "password"
 
 
@@ -111,6 +112,9 @@ def patient_addq():
 def patient_api_home():
     current_user = get_jwt_identity()
     # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
+    global conn
+    if conn.closed == True:
+        conn = psycopg.connect(CONN_STRING)
     # medication_query = "SELECT pi.medication_id,m.medication_generic_name,pi.frequency,pi.dosage,pi.days,p.date + pi.days AS due_date FROM  prescription_items pi INNER JOIN medication m ON pi.medication_id = m.medication_id INNER JOIN prescription p ON pi.prescription_id = p.prescription_id WHERE p.status = true AND p.date + pi.days >= NOW() AND p.patient_id = "
     medication_query = """
     SELECT
@@ -192,6 +196,9 @@ def patient_api_home():
 @jwt_required()
 def patient_api_home_with_uid(uid):
     # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
+    global conn
+    if conn.closed == True:
+        conn = psycopg.connect(CONN_STRING)
     medication_query = """
     SELECT 
         pi.medication_id,
@@ -272,6 +279,9 @@ def add_patient():
     (%s, '%s', '%s', '%s', '%s', %s, %s, '%s', '%s', %s, %s, %s)
     """
     # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
+    global conn
+    if conn.closed == True:
+        conn = psycopg.connect(CONN_STRING)
     patient_id = random.randint(10, 1000)
     name = request.json.get("name", None)
     password = request.json.get("password", None)
@@ -315,6 +325,9 @@ def add_patient():
 @jwt_required()
 def patient_api_with_email(email):
     # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
+    global conn
+    if conn.closed == True:
+        conn = psycopg.connect(CONN_STRING)
     medication_query = """
     SELECT 
         pi.medication_id,
@@ -435,6 +448,9 @@ def prescription_api_home_with_email():
     doctor_id = None
     if request.method == 'POST':
         # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
+        global conn
+        if conn.closed == True:
+            conn = psycopg.connect(CONN_STRING)
         with conn.cursor() as cur:
             if request.json.get("patient_email", None):
                 cur.execute("select patient_id from patient where email like '%s'" %
@@ -466,6 +482,9 @@ def prescription_api_home_with_email():
 def doctor_login():
     if request.method == "POST":
         # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
+        global conn
+        if conn.closed == True:
+            conn = psycopg.connect(CONN_STRING)
         id = request.json.get("id", None)
         password = request.json.get("password", None)
         index = 0
@@ -495,6 +514,9 @@ def doctor_login():
 def patient_login():
     if request.method == "POST":
         # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
+        global conn
+        if conn.closed == True:
+            conn = psycopg.connect(CONN_STRING)
         id = request.json.get("id", None)
         password = request.json.get("password", None)
         with conn.cursor() as cur:
@@ -519,6 +541,9 @@ def patient_login():
 def pharmacist_login():
     if request.method == "POST":
         # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
+        global conn
+        if conn.closed == True:
+            conn = psycopg.connect(CONN_STRING)
         id = request.json.get("id", None)
         password = request.json.get("password", None)
         with conn.cursor() as cur:
@@ -563,6 +588,9 @@ def recent_prescriptions():
     WHERE d.doctor_id = 
     """
     # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
+    global conn
+    if conn.closed == True:
+        conn = psycopg.connect(CONN_STRING)
     with conn.cursor() as cur:
         cur.execute(query+current_user)
         rows = cur.fetchall()
@@ -597,6 +625,9 @@ def recent_patient_prescriptions():
     WHERE r.email like '%s'
     """
     # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
+    global conn
+    if conn.closed == True:
+        conn = psycopg.connect(CONN_STRING)
     ret = {}
     patient_email = request.args.get("patient", None)
     print(patient_email)
@@ -644,6 +675,9 @@ def recent_prescriptions_pharmacist():
     WHERE d.pharmacist_id = %s 
     """ % (current_user)
     # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
+    global conn
+    if conn.closed == True:
+        conn = psycopg.connect(CONN_STRING)
     with conn.cursor() as cur:
         cur.execute(query)
         rows = cur.fetchall()
@@ -691,6 +725,9 @@ def view_prescription(uid):
     WHERE  p.prescription_id = %s
     """
     # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
+    global conn
+    if conn.closed == True:
+        conn = psycopg.connect(CONN_STRING)
     with conn.cursor() as cur:
         cur.execute(query % uid)
         rows = cur.fetchall()
@@ -746,6 +783,9 @@ def edit_prescription(uid):
     if claims["usertype"] == "0":
         edit_type = request.args.get('type', None)
         # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
+        global conn
+        if conn.closed == True:
+            conn = psycopg.connect(CONN_STRING)
         with conn.cursor() as cur:
             print(edit_type, edit_type == 'medication')
             if edit_type == 'medication':
@@ -768,6 +808,9 @@ def edit_prescription(uid):
         edit_type = request.args.get('type', None)
         if edit_type == 'issue':
             # conn = psycopg.connect("postgresql://root@localhost:26257/truerx?sslmode=disable")
+            global conn
+            if conn.closed == True:
+                conn = psycopg.connect(CONN_STRING)
             with conn.cursor() as cur:
                 cur.execute(issue_query % ('true', current_pharmacist, uid))
                 conn.commit()
