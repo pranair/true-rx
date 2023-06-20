@@ -76,23 +76,6 @@ def verify():
         return jsonify({"error": True})
 
 
-@app.route("/api/patient/addq", methods=["POST"])
-def patient_addq():
-    if request.method == 'POST':
-        # print(request.method)
-        connection = kombu.Connection("amqp://localhost:5672/")
-        channel = connection.channel()
-        content = request.json
-        queue = SimpleBuffer(channel, content["queue"])
-        ret = {
-            "action": "failure"
-        }
-        if queue.qsize() == 0:
-            queue.put(content["id"])
-            queue.close()
-            ret["action"] = "success"
-    return jsonify(ret)
-
 
 @app.route("/api/patient", methods=["GET"])
 @jwt_required()
