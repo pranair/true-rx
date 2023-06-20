@@ -1,9 +1,7 @@
 from flask import Flask, render_template, request, jsonify, Response, redirect
-from kombu.simple import SimpleBuffer
 from datetime import timedelta
 import string
 import random
-import kombu
 import psycopg
 import random
 import datetime
@@ -76,28 +74,6 @@ def verify():
         return Response(eventStream(), mimetype="text/event-stream")
     else:
         return jsonify({"error": True})
-
-
-@app.route("/api/patient/gen_qr")
-def patient_qr():
-    k = id_generator()
-    connection = kombu.Connection("amqp://localhost:5672/")
-    channel = connection.channel()
-    queue = SimpleBuffer(channel, k)
-    return jsonify({"id": k})
-
-
-@app.route('/api/patient/verify_qr/<uid>')
-def verify_qr(uid):
-    connection = kombu.Connection("amqp://localhost:5672/")
-    channel = connection.channel()
-    queue = SimpleBuffer(channel, uid)
-
-    def eventStream():
-        while queue.qsize() == 0:
-            continue
-        yield 'data: %s\n\n' % queue.get().body
-    return Response(eventStream(), mimetype="text/event-stream")
 
 
 @app.route("/api/patient/addq", methods=["POST"])
